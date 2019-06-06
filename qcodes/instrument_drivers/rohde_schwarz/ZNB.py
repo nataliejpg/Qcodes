@@ -470,10 +470,10 @@ class ZNB(VisaInstrument):
             self.channels.lock()
             self.display_sij_split()
             self.channels.autoscale()
+            if reset_channels:
+                self.rf_off()
 
         self.update_display_on()
-        if reset_channels:
-            self.rf_off()
         self.connect_message()
 
     def display_grid(self, rows: int, cols: int):
