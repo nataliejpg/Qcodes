@@ -1,4 +1,4 @@
-from typing import List, Any, Sequence, Tuple, Dict, Union, cast
+from typing import List, Any, Sequence, Tuple, Dict, Union, cast, Optional
 import logging
 
 import numpy as np
@@ -7,6 +7,7 @@ from qcodes.dataset.descriptions.param_spec import ParamSpecBase
 from qcodes.dataset.sqlite.queries import (get_dependencies, get_dependents,
                                            get_layout)
 from qcodes.dataset.data_set import load_by_id
+from qcodes.dataset.sqlite.connection import ConnectionPlus
 
 log = logging.getLogger(__name__)
 
@@ -31,7 +32,7 @@ def flatten_1D_data_for_plot(rawdata: Union[Sequence[Sequence[Any]],
     return dataarray
 
 
-def get_data_by_id(run_id: int) -> \
+def get_data_by_id(run_id: int, conn: Optional[ConnectionPlus] = None) -> \
         List[List[Dict[str, Union[str, np.ndarray]]]]:
     """
     Load data from database and reshapes into 1D arrays with minimal
@@ -42,6 +43,7 @@ def get_data_by_id(run_id: int) -> \
 
     Args:
         run_id: run ID from the database
+        conn: connection to the database to load from
 
     Returns:
         a list of lists of dictionaries like this:
@@ -70,7 +72,7 @@ def get_data_by_id(run_id: int) -> \
         ]
 
     """
-    ds = load_by_id(run_id)
+    ds = load_by_id(run_id, conn=conn)
 
     dependent_parameters: Tuple[ParamSpecBase, ...] = ds.dependent_parameters
 
@@ -398,7 +400,8 @@ def reshape_2D_data(x: np.ndarray, y: np.ndarray, z: np.ndarray
     return xrow, yrow, z_to_plot
 
 
-def get_shaped_data_by_runid(run_id: int) -> List:
+def get_shaped_data_by_runid(run_id: int,
+                             conn: Optional[ConnectionPlus] = None) -> List:
     """
     Get data for a given run ID, but shaped according to its nature
 
@@ -407,11 +410,12 @@ def get_shaped_data_by_runid(run_id: int) -> List:
 
     Args:
         run_id: The ID of the run for which to get data
+        conn: connection to the database to load from
 
     Returns:
         List of lists of dictionaries, the same as for `get_data_by_id`
     """
-    mydata = get_data_by_id(run_id)
+    mydata = get_data_by_id(run_id, conn=conn)
 
     for independet in mydata:
         data_length_long_enough = len(independet) == 3 \

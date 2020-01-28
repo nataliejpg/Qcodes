@@ -17,6 +17,7 @@ from contextlib import contextmanager
 
 import qcodes as qc
 from qcodes.dataset.data_set import load_by_run_spec, DataSet
+from qcodes.dataset.sqlite.connection import ConnectionPlus
 from qcodes.utils.plotting import auto_color_scale_from_config
 
 from .data_export import (get_data_by_id, flatten_1D_data_for_plot,
@@ -98,6 +99,7 @@ def plot_dataset(dataset: DataSet,
                                                    Number]] = None,
                  complex_plot_type: str = 'real_and_imag',
                  complex_plot_phase: str = 'radians',
+                 conn: Optional[ConnectionPlus] = None,
                  **kwargs: Any) -> AxesTupleList:
     """
     Construct all plots for a given dataset
@@ -176,7 +178,7 @@ def plot_dataset(dataset: DataSet,
     title = f"Run #{dataset.captured_run_id}, " \
             f"Experiment {experiment_name} ({sample_name})"
 
-    alldata: NamedData = get_data_by_id(dataset.run_id)
+    alldata: NamedData = get_data_by_id(dataset.run_id, conn=conn)
     alldata = _complex_to_real_preparser(alldata,
                                          conversion=complex_plot_type,
                                          degrees=degrees)
@@ -313,6 +315,7 @@ def plot_by_id(run_id: int,
                                                  Number]] = None,
                complex_plot_type: str = 'real_and_imag',
                complex_plot_phase: str = 'radians',
+               conn: Optional[ConnectionPlus] = None,
                **kwargs: Any) -> AxesTupleList:
     """
     Construct all plots for a given `run_id`. Here `run_id` is an
@@ -322,7 +325,7 @@ def plot_by_id(run_id: int,
     to :func:`.plot_dataset`, see this for more details.
     """
 
-    dataset = load_by_run_spec(captured_run_id=run_id)
+    dataset = load_by_run_spec(captured_run_id=run_id, conn=conn)
     return plot_dataset(dataset,
                         axes,
                         colorbars,
@@ -331,6 +334,7 @@ def plot_by_id(run_id: int,
                         cutoff_percentile,
                         complex_plot_type,
                         complex_plot_phase,
+                        conn,
                         **kwargs)
 
 
