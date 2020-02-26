@@ -218,7 +218,7 @@ def new_experiment(name: str,
                       conn=conn)
 
 
-def load_experiment(exp_id: int) -> Experiment:
+def load_experiment(exp_id: int, conn=None) -> Experiment:
     """
     Load experiment with the specified id (from database file from config)
 
@@ -230,20 +230,21 @@ def load_experiment(exp_id: int) -> Experiment:
     """
     if not isinstance(exp_id, int):
         raise ValueError('Experiment ID must be an integer')
-    return Experiment(exp_id=exp_id)
+    return Experiment(exp_id=exp_id, conn=conn)
 
 
-def load_last_experiment() -> Experiment:
+def load_last_experiment(conn: Optional[ConnectionPlus]=None) -> Experiment:
     """
     Load last experiment (from database file from config)
 
     Returns:
         last experiment
     """
-    last_exp_id = get_last_experiment(connect(get_DB_location()))
+    conn = conn or connect(get_DB_location())
+    last_exp_id = get_last_experiment(conn)
     if last_exp_id is None:
         raise ValueError('There are no experiments in the database file')
-    return Experiment(exp_id=last_exp_id)
+    return Experiment(exp_id=last_exp_id, conn=conn)
 
 
 def load_experiment_by_name(name: str,
